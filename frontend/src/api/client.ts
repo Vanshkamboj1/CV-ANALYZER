@@ -1,40 +1,48 @@
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 
-const baseURL = "http://localhost:8080/api";
+const baseURL = import.meta.env.VITE_API_URL;
 
-const client = axios.create({ baseURL });
+const client = axios.create({
+  baseURL,
+  withCredentials: true,
+  timeout: 10000,
+});
 
-// Attaching token automatically
+// Request interceptor
 client.interceptors.request.use(
   (config) => {
-    try {
-      const token = useAuthStore.getState().token;
-      if (token) {
-        config.headers = config.headers || {};
-        (config.headers as any).Authorization = `Bearer ${token}`;
-      }
-    } catch (e) {
-      // silent fallback
+    const token = useAuthStore.getState().token;
+
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Handling expired tokens globally
+// Response interceptor
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      console.warn("Session expired, logging out.");
-      try {
-        useAuthStore.getState().logout();
-      } catch (e) {
-        // ignore
-      }
+    const status = error.response?.status;
+
+    if (status === 401) {
+      useAuthStore.getState().logout();
       window.location.href = "/signin";
     }
+
+    if (status === 403) {
+      console.warn("Access denied");
+    }
+
+    if (status >= 500) {
+      console.error("Server error");
+    }
+
     return Promise.reject(error);
   }
 );
