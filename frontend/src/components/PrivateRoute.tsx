@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { Navigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
 
 export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -8,7 +7,6 @@ export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const hrId = useAuthStore((s) => s.hrId);
 
   if (!token || !hrId) {
-    toast.error("Session expired. Please sign in again.", { id: "session-expired" });
     try {
       useAuthStore.getState().logout();
     } catch (e) {

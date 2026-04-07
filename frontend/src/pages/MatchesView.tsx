@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FeedbackModal from "../components/FeedbackModal";
 import { fetchJobMatches, type MatchScore } from "@/api/matches";

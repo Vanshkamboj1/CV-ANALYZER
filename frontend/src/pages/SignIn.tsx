@@ -112,6 +112,26 @@ const SignIn = () => {
           {loading ? "Signing in..." : "Sign In"}
         </button>
 
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-[#f4f7f5] text-gray-500">Or continue with</span>
+          </div>
+        </div>
+
+        {/* Google OAuth Button */}
+        <button
+          type="button"
+          onClick={() => window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/oauth2/authorization/google`}
+          className="w-full flex justify-center items-center gap-3 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl transition hover:bg-gray-50"
+        >
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+          Sign in with Google
+        </button>
+
         {/* Divider / Link */}
         <p className="text-center text-sm text-gray-600">
           Don’t have an account?{" "}
