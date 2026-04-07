@@ -79,7 +79,7 @@ export const Layout = () => {
         </button>
 
         <div className="mt-auto text-sm text-gray-400 text-center">
-          © {new Date().getFullYear()} Vansh CV Analyzer
+          © {new Date().getFullYear()} VANSH CV Analyzer
         </div>
       </aside>
 

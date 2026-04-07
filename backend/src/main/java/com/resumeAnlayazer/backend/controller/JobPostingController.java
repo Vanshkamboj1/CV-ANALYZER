@@ -65,4 +65,16 @@ public class JobPostingController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Update an existing job posting
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<JobPostingResponseDto> updateJobPosting(
+            @PathVariable Long id, 
+            @Valid @RequestBody JobPostingRequestDTO requestDto) {
+        
+        JobPostingResponseDto updatedJob = jobPostingService.updateJobPosting(id, requestDto);
+        return ResponseEntity.ok(updatedJob);
+    }
 }

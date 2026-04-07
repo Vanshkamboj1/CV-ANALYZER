@@ -5,6 +5,7 @@ import * as resumesApi from "../api/resumes";
 import type { Job, Resume } from "@/types";
 import { useAuthStore } from "@/store/authStore";
 import toast from "react-hot-toast";
+import client from "../api/client";
 
 type State = {
   resumes: Resume[];
@@ -15,6 +16,9 @@ type State = {
   pendingResumes: number;
   fetchResumes: () => Promise<void>;
   fetchJobs: (hrId?: number) => Promise<void>;
+  deleteResume: (id: string | number) => Promise<void>;
+  deleteJob: (id: string | number) => Promise<void>;
+  editJob: (id: string | number, payload: any) => Promise<void>;
 };
 
 export const useStore = create<State>((set) => ({
@@ -53,7 +57,7 @@ export const useStore = create<State>((set) => ({
     try {
       const id = hrId ?? useAuthStore.getState().hrId;
       if (!id) {
-        toast.error("Session expired — please sign in again.");
+        toast.error("Session expired — please sign in again.", { id: "session-expired" });
         set({ loading: false });
         return;
       }
@@ -61,15 +65,64 @@ export const useStore = create<State>((set) => ({
       // call backend API (hrId required)
       let jobs = await jobsApi.fetchJobs(id);
 
-      if (!jobs || jobs.length === 0) {
-        jobs = await mock.fetchJobs();
-      }
-
-      set({ jobs, loading: false });
+      set({ jobs: jobs || [], loading: false });
     } catch (error) {
       console.error(" fetchJobs error:", error);
       toast.error("Failed to load job postings.");
       set({ loading: false });
+    }
+  },
+
+  deleteResume: async (id) => {
+    try {
+      await client.delete(`/upload/${id}`);
+      set((state) => {
+        const removed = state.resumes.filter((r) => String(r.id) !== String(id));
+        return { resumes: removed };
+      });
+      toast.success("Resume deleted successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete resume");
+    }
+  },
+
+  deleteJob: async (id) => {
+    try {
+      await client.delete(`/jobs/${id}`);
+      set((state) => {
+        const removed = state.jobs.filter((j) => String(j.id) !== String(id));
+        return { jobs: removed };
+      });
+      toast.success("Job deleted successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete job");
+    }
+  },
+
+  editJob: async (id, payload) => {
+    try {
+      await jobsApi.updateJob(id, payload);
+      set((state) => ({
+        jobs: state.jobs.map((j) => {
+          if (String(j.id) === String(id)) {
+            return {
+              ...j,
+              title: payload.jobTitle || j.title,
+              description: payload.jobDescription || j.description,
+              skills: Array.isArray(payload.skills)
+                ? payload.skills
+                : typeof payload.skills === 'string'
+                ? payload.skills.split(',').map((s: string) => s.trim())
+                : j.skills,
+            };
+          }
+          return j;
+        }),
+      }));
+    } catch (error) {
+      console.error("Failed to update job in store:", error);
     }
   },
 }));

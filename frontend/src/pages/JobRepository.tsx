@@ -6,16 +6,18 @@ import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function JobRepository() {
-  const { jobs, fetchJobs } = useStore();
+  const { jobs, fetchJobs, deleteJob, editJob } = useStore();
   const { hrId, isAuthenticated } = useAuthStore();
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | number | null>(null);
+  const [editJobData, setEditJobData] = useState<any>(null);
   const navigate = useNavigate();
 
   //Load jobs only if authenticated & HR ID is available
   useEffect(() => {
     if (!isAuthenticated || !hrId) {
-      toast.error("Session expired — please sign in again.");
+      toast.error("Session expired — please sign in again.", { id: "session-expired" });
       navigate("/signin");
       return;
     }
@@ -96,12 +98,109 @@ export default function JobRepository() {
                 >
                   View Matches
                 </button>
-                <button className="bg-pink-100 text-pink-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-pink-200 transition">
+                <button 
+                  onClick={() => setEditJobData(job)}
+                  className="bg-pink-100 text-pink-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-pink-200 transition">
                   Edit
+                </button>
+                <button 
+                  onClick={() => setDeleteConfirmId(job.id)}
+                  className="bg-red-100 text-red-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-200 transition"
+                >
+                  Delete
                 </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modern Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 animate-in fade-in zoom-in duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Job Posting?</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              This action cannot be undone. All candidate matches and data for this job will be definitively lost.
+            </p>
+            <div className="flex justify-end gap-3 flex-wrap">
+              <button
+                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition"
+                onClick={() => setDeleteConfirmId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                onClick={() => {
+                  deleteJob(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }}
+              >
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Job Modal */}
+      {editJobData && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-lg w-full animate-in fade-in zoom-in duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Edit Job Posting</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                <input
+                  type="text"
+                  value={editJobData.title}
+                  onChange={(e) => setEditJobData({ ...editJobData, title: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={editJobData.description}
+                  onChange={(e) => setEditJobData({ ...editJobData, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none h-24"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Skills (comma separated)</label>
+                <input
+                  type="text"
+                  value={Array.isArray(editJobData.skills) ? editJobData.skills.join(", ") : editJobData.skills}
+                  onChange={(e) => setEditJobData({ ...editJobData, skills: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition"
+                onClick={() => setEditJobData(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                onClick={async () => {
+                   await editJob(editJobData.id, {
+                     jobTitle: editJobData.title,
+                     jobDescription: editJobData.description,
+                     skills: typeof editJobData.skills === "string" 
+                       ? editJobData.skills.split(",").map((s: string) => s.trim()) 
+                       : editJobData.skills
+                   });
+                   setEditJobData(null);
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

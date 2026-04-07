@@ -10,6 +10,7 @@ import LandingPage from "./pages/LandingPage";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import { PrivateRoute } from "./components/PrivateRoute";
+import { Toaster } from "react-hot-toast";
 
 export const App = () => (
   <BrowserRouter>
@@ -36,6 +37,7 @@ export const App = () => (
         <Route path="job/:id/matches" element={<MatchesView />} />
       </Route>
     </Routes>
+    <Toaster position="bottom-right" />
   </BrowserRouter>
 );
 

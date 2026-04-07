@@ -10,5 +10,5 @@ public interface JobPostingService {
     List<JobPostingResponseDto> getAllByHrUserId(Long hrUserId);
     JobPostingResponseDto getJobPostingById(Long id);
     void deleteJobPosting(Long id);
-
+    JobPostingResponseDto updateJobPosting(Long id, JobPostingRequestDTO requestDto);
 }

@@ -37,7 +37,11 @@ public class AIServiceImpl implements AIService {
                 {
                   "personalDetails": {},
                   "education": [],
-                  "skills": {},
+                  "skills": {
+                    "languages": [],
+                    "frameworksLibraries": [],
+                    "tools": []
+                  },
                   "softSkills": [],
                   "experience": [],
                   "internships": [],

@@ -46,6 +46,7 @@ public class UploadedTextServiceImpl implements UploadedTextService {
              PDDocument document = PDDocument.load(inputStream)) {
 
             PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
             extractedText = stripper.getText(document);
 
             if (extractedText == null || extractedText.trim().isEmpty()) {
@@ -142,5 +143,18 @@ public class UploadedTextServiceImpl implements UploadedTextService {
                                 .orElse(null))
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteUploadedText(Long id) {
+        UploadedTextModel upload = uploadedTextRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("UploadedText not found with id: " + id));
+
+        // Delete associated AI response if exists to prevent FK violation
+        aiResponseRepository.findByUploadedText_Id(id).ifPresent(aiResponseRepository::delete);
+
+        // Delete the main text model
+        uploadedTextRepository.delete(upload);
     }
 }

@@ -33,7 +33,7 @@ export default function UploadResume() {
   }
 
   if (!isAuthenticated || !hrId) {
-    toast.error("Session expired — please sign in again.");
+    toast.error("Session expired — please sign in again.", { id: "session-expired" });
     return;
   }
 

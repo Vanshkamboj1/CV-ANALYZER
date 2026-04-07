@@ -45,7 +45,7 @@ export async function fetchResumes(): Promise<Resume[]> {
   try {
     const hrId = getHrIdFromToken();
     if (!hrId) {
-      toast.error("Session expired — please log in again.");
+      toast.error("Session expired — please log in again.", { id: "session-expired" });
       return [];
     }
 
@@ -72,7 +72,7 @@ export async function fetchResumes(): Promise<Resume[]> {
 export async function uploadResume(file: File) {
   const hrId = getHrIdFromToken();
   if (!hrId) {
-    toast.error("Session expired — please log in again.");
+    toast.error("Session expired — please log in again.", { id: "session-expired" });
     throw new Error("Invalid or expired token");
   }
 

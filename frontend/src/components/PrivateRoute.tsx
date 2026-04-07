@@ -8,7 +8,7 @@ export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const hrId = useAuthStore((s) => s.hrId);
 
   if (!token || !hrId) {
-    toast.error("Session expired. Please sign in again.");
+    toast.error("Session expired. Please sign in again.", { id: "session-expired" });
     try {
       useAuthStore.getState().logout();
     } catch (e) {

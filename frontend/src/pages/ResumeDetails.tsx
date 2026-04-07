@@ -58,7 +58,7 @@ export default function ResumeDetails() {
       if (!id) return;
 
       if (!isAuthenticated || !hrId) {
-        toast.error("Session expired — please sign in again.");
+        toast.error("Session expired — please sign in again.", { id: "session-expired" });
         navigate("/signin");
         return;
       }
@@ -80,7 +80,7 @@ export default function ResumeDetails() {
         console.error(" Failed to fetch resume:", err);
         const status = err.response?.status;
         if (status === 401) {
-          toast.error("Session expired — please log in again.");
+          toast.error("Session expired — please log in again.", { id: "session-expired" });
           navigate("/signin");
         } else if (status === 404) {
           toast.error("Resume not found.");

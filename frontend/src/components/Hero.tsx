@@ -17,7 +17,7 @@ export const Hero = () => {
     const load = async () => {
       const hrId = getHrIdFromToken();
       if (!hrId) {
-        toast.error("Session expired — please sign in again.");
+        toast.error("Session expired — please sign in again.", { id: "session-expired" });
         return;
       }
 

@@ -17,4 +17,7 @@ public interface UploadedTextService {
 
     //  List all resumes uploaded by a specific HR user
     List<UploadedTextResponseDto> getAllResumesByHr(Long hrUserId);
+
+    //  Delete an uploaded resume by its ID
+    void deleteUploadedText(Long id);
 }

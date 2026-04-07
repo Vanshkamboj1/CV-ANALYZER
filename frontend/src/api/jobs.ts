@@ -66,4 +66,16 @@ export async function saveJob(payload: any) {
   }
 }
 
-export default { fetchJobs, saveJob };
+export async function updateJob(id: string | number, payload: any) {
+  try {
+    const { data } = await client.put(`/jobs/${id}`, payload);
+    toast.success("Job updated successfully!");
+    return data;
+  } catch (err) {
+    toast.error("Failed to update job");
+    console.error("updateJob error:", err);
+    throw err;
+  }
+}
+
+export default { fetchJobs, saveJob, updateJob };

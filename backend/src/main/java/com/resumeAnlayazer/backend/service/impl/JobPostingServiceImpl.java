@@ -66,6 +66,28 @@ public class JobPostingServiceImpl implements JobPostingService {
         jobPostingRepository.deleteById(id);
     }
 
+    @Override
+    public JobPostingResponseDto updateJobPosting(Long id, JobPostingRequestDTO requestDto) {
+        JobPostingModel jobPosting = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Job posting not found"));
+
+        if (requestDto.getJobTitle() != null && !requestDto.getJobTitle().isBlank()) {
+            jobPosting.setJobTitle(requestDto.getJobTitle());
+        }
+        if (requestDto.getJobDescription() != null && !requestDto.getJobDescription().isBlank()) {
+            jobPosting.setJobDescription(requestDto.getJobDescription());
+        }
+        if (requestDto.getSkills() != null && !requestDto.getSkills().isEmpty()) {
+            jobPosting.setSkills(requestDto.getSkills());
+        }
+        if (requestDto.getStatus() != null && !requestDto.getStatus().isBlank()) {
+            jobPosting.setStatus(requestDto.getStatus());
+        }
+
+        JobPostingModel saved = jobPostingRepository.save(jobPosting);
+        return mapToResponseDto(saved);
+    }
+
     private JobPostingResponseDto mapToResponseDto(JobPostingModel model) {
         return JobPostingResponseDto.builder()
                 .id(model.getId())

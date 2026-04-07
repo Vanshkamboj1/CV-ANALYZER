@@ -32,14 +32,14 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults()) // enable CORS config below
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // ✅ Allow HR user registration & login without token
                         .requestMatchers("/api/hrusers/login", "/api/hrusers/register").permitAll()
                         // ✅ Everything else requires JWT
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(Customizer.withDefaults());
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

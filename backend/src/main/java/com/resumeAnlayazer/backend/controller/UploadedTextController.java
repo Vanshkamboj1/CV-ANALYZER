@@ -55,4 +55,19 @@ public class UploadedTextController {
         List<UploadedTextResponseDto> responses = uploadedTextService.getAllResumesByHr(hrUserId);
         return ResponseEntity.ok(responses);
     }
+
+    /**
+     * Delete an uploaded resume by its ID
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<java.util.Map<String, Object>> deleteUploadedText(@PathVariable Long id) {
+        uploadedTextService.deleteUploadedText(id);
+        
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("message", "Resume deleted successfully");
+        response.put("timestamp", java.time.LocalDateTime.now());
+        response.put("status", org.springframework.http.HttpStatus.OK.value());
+        
+        return ResponseEntity.ok(response);
+    }
 }
