@@ -136,7 +136,7 @@ const SignIn = () => {
             type="button"
             onClick={() =>
               (window.location.href = `${
-                import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
+                import.meta.env.VITE_API_URL || "http://localhost:8080"
               }/oauth2/authorization/google`)
             }
             className="w-full flex justify-center items-center gap-3 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl transition hover:bg-gray-50"
