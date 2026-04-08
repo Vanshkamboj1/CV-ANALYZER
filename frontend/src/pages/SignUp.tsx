@@ -169,7 +169,11 @@ const SignUp = () => {
         {/* Google OAuth Button */}
         <button
           type="button"
-          onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`}
+          onClick={() => {
+            const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+            const oauthUrl = `${apiBaseUrl.replace(/\/api$/, "")}/oauth2/authorization/google`;
+            window.location.href = oauthUrl;
+          }}
           className="w-full flex justify-center items-center gap-3 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl transition hover:bg-gray-50"
         >
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
