@@ -13,4 +13,6 @@ public class MatchScoreDTO {
     private int matchScore;  // 0–100
     private int matchedSkillsCount;
     private int totalJobSkills;
+    private String feedbackText;
+    private String feedbackStatus;
 }

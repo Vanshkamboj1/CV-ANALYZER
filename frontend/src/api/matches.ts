@@ -7,6 +7,16 @@ export interface MatchScore {
   matchScore: number;
   matchedSkillsCount: number;
   totalJobSkills: number;
+  feedbackText?: string;
+  feedbackStatus?: string;
+}
+
+export async function saveFeedback(jobId: number, resumeId: number, text: string, status: string) {
+  const { data } = await client.post(`/jobs/${jobId}/resumes/${resumeId}/feedback`, {
+    feedbackText: text,
+    status
+  });
+  return data;
 }
 
 /**

@@ -12,17 +12,22 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import com.resumeAnlayazer.backend.model.FeedbackModel;
+import com.resumeAnlayazer.backend.repository.FeedbackRepository;
 
 @Service
 public class JobMatchServiceImpl implements JobMatchService {
 
     private final JobPostingRepository jobPostingRepository;
     private final UploadedTextRepository uploadedTextRepository;
+    private final FeedbackRepository feedbackRepository;
 
     public JobMatchServiceImpl(JobPostingRepository jobPostingRepository,
-                               UploadedTextRepository uploadedTextRepository) {
+                               UploadedTextRepository uploadedTextRepository,
+                               FeedbackRepository feedbackRepository) {
         this.jobPostingRepository = jobPostingRepository;
         this.uploadedTextRepository = uploadedTextRepository;
+        this.feedbackRepository = feedbackRepository;
     }
 
     @Override
@@ -60,12 +65,18 @@ public class JobMatchServiceImpl implements JobMatchService {
             int finalScore = (int) Math.round((skillScore * 0.9) + (descScore * 0.1));
             if (finalScore > 100) finalScore = 100;
 
+            Optional<FeedbackModel> feedbackOpt = feedbackRepository.findByJobIdAndResumeId(jobId, resume.getId());
+            String feedbackText = feedbackOpt.map(FeedbackModel::getFeedbackText).orElse(null);
+            String feedbackStatus = feedbackOpt.map(FeedbackModel::getStatus).orElse("PENDING");
+
             matches.add(new MatchScoreDTO(
                     resume.getId(),
                     resume.getFileName(),
                     finalScore,
                     matchedSkills,
-                    jobSkills.size()
+                    jobSkills.size(),
+                    feedbackText,
+                    feedbackStatus
             ));
         }
 

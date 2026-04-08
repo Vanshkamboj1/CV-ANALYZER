@@ -25,25 +25,25 @@ export default function MatchesView() {
   }, [id, jobs]);
 
   //  Fetch matches from backend
+  const loadMatches = async () => {
+    if (!isAuthenticated || !hrId) {
+      setError("Session expired — please sign in again.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const data = await fetchJobMatches(Number(id));
+      setMatches(data);
+    } catch (err: any) {
+      console.error("Failed to load matches:", err);
+      setError(err.message || "Unable to load match results.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadMatches = async () => {
-      if (!isAuthenticated || !hrId) {
-        setError("Session expired — please sign in again.");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const data = await fetchJobMatches(Number(id));
-        setMatches(data);
-      } catch (err: any) {
-        console.error("Failed to load matches:", err);
-        setError(err.message || "Unable to load match results.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (id) loadMatches();
   }, [id, hrId, isAuthenticated]);
 
@@ -64,13 +64,29 @@ export default function MatchesView() {
           {matches.map((m) => (
             <div
               key={m.resumeId}
-              className="p-4 border rounded-2xl flex justify-between items-center bg-white hover:shadow-md transition-all"
+              className={`p-4 border rounded-2xl flex justify-between items-center bg-white hover:shadow-md transition-all ${
+                m.feedbackStatus === "ACCEPTED" ? "border-green-300 bg-green-50/30" : 
+                m.feedbackStatus === "REJECTED" ? "border-red-300 bg-red-50/30" : ""
+              }`}
             >
               <div>
-                <div className="font-medium">{m.fileName}</div>
-                <div className="text-sm text-gray-500">
+                <div className="font-medium flex items-center gap-2">
+                  {m.fileName}
+                  {m.feedbackStatus === "ACCEPTED" && (
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 rounded-lg">Accepted</span>
+                  )}
+                  {m.feedbackStatus === "REJECTED" && (
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-700 rounded-lg">Rejected</span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-500 mt-1">
                   {m.matchedSkillsCount}/{m.totalJobSkills} skills matched
                 </div>
+                {m.feedbackText && (
+                  <div className="text-xs text-gray-500 mt-2 italic truncate max-w-sm">
+                    Feedback: "{m.feedbackText}"
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-3">
@@ -106,7 +122,7 @@ export default function MatchesView() {
                     setOpen(true);
                   }}
                 >
-                  Add Feedback
+                  {m.feedbackStatus !== "PENDING" && m.feedbackStatus ? "Edit Feedback" : "Add Feedback"}
                 </button>
               </div>
             </div>
@@ -118,6 +134,8 @@ export default function MatchesView() {
         open={open}
         onClose={() => setOpen(false)}
         candidate={selected}
+        jobId={Number(id)}
+        onSuccess={() => loadMatches()}
       />
     </div>
   );
