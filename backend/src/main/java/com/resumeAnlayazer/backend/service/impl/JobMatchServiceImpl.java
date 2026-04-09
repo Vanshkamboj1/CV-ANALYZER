@@ -52,6 +52,9 @@ public class JobMatchServiceImpl implements JobMatchService {
         List<MatchScoreDTO> matches = new ArrayList<>();
 
         for (UploadedTextModel resume : resumes) {
+            // Ignore resumes where AI analysis completely failed
+            if ("FAILED".equalsIgnoreCase(resume.getStatus())) continue;
+
             if (resume.getExtractedText() == null || resume.getExtractedText().isBlank()) continue;
 
             String resumeText = resume.getExtractedText().toLowerCase();

@@ -59,7 +59,6 @@ const ResumeList: React.FC = () => {
             )}
 
             {resumes
-              .filter((r) => ((r.status ?? "") as string).toLowerCase() !== "failed")
               .map((r) => {
                 const id = String(r.id ?? "");
                 const fileName = (r.name ?? "Unknown").replace(/\.pdf$/i, "");
