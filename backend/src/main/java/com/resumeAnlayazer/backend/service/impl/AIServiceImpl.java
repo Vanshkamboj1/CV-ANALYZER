@@ -96,7 +96,7 @@ public class AIServiceImpl implements AIService {
         try {
             // Call Gemini API
             GenerateContentResponse response =
-                    geminiClient.models.generateContent("gemini-1.5-pro", prompt, null);
+                    geminiClient.models.generateContent("gemini-2.5-flash", prompt, null);
 
             String aiResultText = response.text();
             System.out.println("Gemini raw response:\n" + aiResultText);

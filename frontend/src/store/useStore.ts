@@ -14,7 +14,7 @@ type State = {
   totalResumes: number;
   analyzedResumes: number;
   pendingResumes: number;
-  fetchResumes: () => Promise<void>;
+  fetchResumes: (background?: boolean) => Promise<void>;
   fetchJobs: (hrId?: number) => Promise<void>;
   deleteResume: (id: string | number) => Promise<void>;
   deleteJob: (id: string | number) => Promise<void>;
@@ -29,8 +29,8 @@ export const useStore = create<State>((set) => ({
   analyzedResumes: 0,
   pendingResumes: 0,
 
-  fetchResumes: async () => {
-    set({ loading: true });
+  fetchResumes: async (background = false) => {
+    if (!background) set({ loading: true });
     let r = await resumesApi.fetchResumes();
     if (!r || r.length === 0) {
       r = await mock.fetchResumes();
@@ -39,9 +39,12 @@ export const useStore = create<State>((set) => ({
       (x) => (x.status ?? "").toLowerCase() === "analyzed"
     ).length;
     const pending = r.filter(
-      (x) => (x.status ?? "").toLowerCase() === "pending"
+      (x) => {
+        const s = (x.status ?? "").toLowerCase();
+        return s === "pending" || s === "analyzing";
+      }
     ).length;
-    const total = analyzed + pending;
+    const total = r.length;
 
     set({
       resumes: r,
