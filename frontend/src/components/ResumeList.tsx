@@ -4,12 +4,27 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/store/useStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const ResumeList: React.FC = () => {
   const navigate = useNavigate();
   const { resumes, loading, fetchResumes, deleteResume } = useStore();
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | number | null>(null);
+
+  // Auto-refresh when any resumes are pending/analyzing
+  useEffect(() => {
+    const hasPending = resumes.some((r) => {
+      const s = ((r.status ?? "") as string).toLowerCase();
+      return s === "pending" || s === "analyzing";
+    });
+
+    if (hasPending) {
+      const interval = setInterval(() => {
+        fetchResumes();
+      }, 3000); // Poll every 3 seconds
+      return () => clearInterval(interval);
+    }
+  }, [resumes, fetchResumes]);
 
   return (
     <Card className="mt-6">

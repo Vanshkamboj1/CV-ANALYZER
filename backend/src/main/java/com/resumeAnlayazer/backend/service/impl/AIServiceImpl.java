@@ -32,31 +32,62 @@ public class AIServiceImpl implements AIService {
 
         // Strong prompt (forces JSON only, avoids markdown)
         String prompt = """
-                You are a Resume Analyzer AI.
-                Analyze the given resume text and return a **strictly valid JSON object** (no markdown, no explanations).
-                The JSON must follow this structure exactly:
+                You are an expert Resume Analyzer AI.
+                Analyze the given resume text and extract all details with high accuracy.
+                Return a **strictly valid JSON object** (no markdown, no explanations, only JSON).
+                Extract as much detail as possible into the descriptions.
+                The JSON must follow this exact structure:
                 {
-                  "personalDetails": {},
+                  "personalDetails": {
+                    "name": "string",
+                    "email": "string",
+                    "phone": "string",
+                    "location": "string"
+                  },
                   "education": [
                     {
-                      "degree": "string (e.g., BSc Computer Science)",
-                      "institution": "string (e.g., MIT)",
-                      "year": "string (e.g., 2020-2024)",
-                      "score": "string (e.g., 3.8 GPA)"
+                      "degree": "string",
+                      "institution": "string",
+                      "startDate": "string",
+                      "endDate": "string",
+                      "gpa": "string"
                     }
                   ],
                   "skills": {
-                    "languages": [],
-                    "frameworksLibraries": [],
-                    "tools": []
+                    "languages": ["string"],
+                    "frameworksLibraries": ["string"],
+                    "tools": ["string"]
                   },
-                  "softSkills": [],
-                  "experience": [],
-                  "internships": [],
-                  "projects": [],
-                  "achievements": [],
-                  "certifications": [],
-                  "summary": ""
+                  "softSkills": ["string"],
+                  "experience": [
+                    {
+                      "title": "string",
+                      "company": "string",
+                      "location": "string",
+                      "startDate": "string",
+                      "endDate": "string",
+                      "description": ["string"]
+                    }
+                  ],
+                  "internships": [
+                    {
+                      "title": "string",
+                      "company": "string",
+                      "location": "string",
+                      "startDate": "string",
+                      "endDate": "string",
+                      "description": ["string"]
+                    }
+                  ],
+                  "projects": [
+                    {
+                      "title": "string",
+                      "description": ["string"]
+                    }
+                  ],
+                  "achievements": ["string"],
+                  "certifications": ["string"],
+                  "summary": "string"
                 }
 
                 Resume Text:
@@ -65,7 +96,7 @@ public class AIServiceImpl implements AIService {
         try {
             // Call Gemini API
             GenerateContentResponse response =
-                    geminiClient.models.generateContent("gemini-2.5-flash", prompt, null);
+                    geminiClient.models.generateContent("gemini-1.5-pro", prompt, null);
 
             String aiResultText = response.text();
             System.out.println("Gemini raw response:\n" + aiResultText);
