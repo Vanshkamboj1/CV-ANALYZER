@@ -166,8 +166,10 @@ const SignIn = () => {
       <div className="fixed bottom-4 right-4 z-50 backdrop-blur-md bg-white/90 border border-gray-200 text-gray-800 px-4 py-3 rounded-2xl shadow-lg max-w-xs text-sm">
         <p className="font-semibold">🚀 Deployment Info</p>
         <p className="mt-1 text-gray-600">
-          Backend is hosted on Render. First request may take 2–3 minutes due to
-          cold start.
+          Backend is hosted on Render, 
+          so the first request may take 2–3 minutes due to cold start. 
+          Additionally, OAuth will not work until the cold start is completed, 
+          so please use JWT authentication for the first login.
         </p>
       </div>
     </>
