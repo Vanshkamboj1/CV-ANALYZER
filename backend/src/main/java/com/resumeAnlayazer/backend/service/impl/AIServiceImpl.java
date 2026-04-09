@@ -94,10 +94,40 @@ public class AIServiceImpl implements AIService {
                 """ + resumeText;
 
         try {
-            // Call Gemini API
-            GenerateContentResponse response =
-                    geminiClient.models.generateContent("gemini-2.5-flash", prompt, null);
+            // Call Gemini API with Retry for 503 errors
+            GenerateContentResponse response = null;
+            int maxRetries = 3;
+            int attempt = 0;
+            long waitTimeMs = 2000;
 
+            while (attempt < maxRetries) {
+                try {
+                    attempt++;
+                    response = geminiClient.models.generateContent("gemini-2.5-flash", prompt, null);
+                    break; // Success
+                } catch (Exception e) {
+                    boolean isRateLimit = e.getMessage() != null && e.getMessage().contains("429");
+                    boolean isUnavailable = e.getMessage() != null && e.getMessage().contains("503");
+                    
+                    if ((isRateLimit || isUnavailable) && attempt < maxRetries) {
+                        // Free tiers enforce 15 RPM, meaning we often need to wait ~12+ seconds to clear 429s.
+                        long actualWaitMs = isRateLimit ? Math.max(waitTimeMs, 12000) : waitTimeMs;
+                        
+                        System.err.println("Gemini Network Limit! Error: " + (isRateLimit ? "429 Too Many Requests" : "503 Service Unavailable") + 
+                            " (attempt " + attempt + " of " + maxRetries + "). Retrying in " + (actualWaitMs/1000) + "s...");
+                        
+                        try { Thread.sleep(actualWaitMs); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                        waitTimeMs *= 2; // Exponential backoff
+                    } else {
+                        throw e; // Rethrow if it's an unrecoverable error or we ran out of retries
+                    }
+                }
+            }
+
+            if (response == null) {
+                throw new RuntimeException("Failed to get response after " + maxRetries + " retries due to 503 Service Unavailable.");
+            }
+            
             String aiResultText = response.text();
             System.out.println("Gemini raw response:\n" + aiResultText);
 
