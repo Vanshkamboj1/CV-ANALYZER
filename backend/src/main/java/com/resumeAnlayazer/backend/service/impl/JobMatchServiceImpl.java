@@ -14,6 +14,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import com.resumeAnlayazer.backend.model.FeedbackModel;
 import com.resumeAnlayazer.backend.repository.FeedbackRepository;
+import com.resumeAnlayazer.backend.model.AIResponseModel;
+import com.resumeAnlayazer.backend.repository.AIResponseRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class JobMatchServiceImpl implements JobMatchService {
@@ -21,13 +25,17 @@ public class JobMatchServiceImpl implements JobMatchService {
     private final JobPostingRepository jobPostingRepository;
     private final UploadedTextRepository uploadedTextRepository;
     private final FeedbackRepository feedbackRepository;
+    private final AIResponseRepository aiResponseRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JobMatchServiceImpl(JobPostingRepository jobPostingRepository,
                                UploadedTextRepository uploadedTextRepository,
-                               FeedbackRepository feedbackRepository) {
+                               FeedbackRepository feedbackRepository,
+                               AIResponseRepository aiResponseRepository) {
         this.jobPostingRepository = jobPostingRepository;
         this.uploadedTextRepository = uploadedTextRepository;
         this.feedbackRepository = feedbackRepository;
+        this.aiResponseRepository = aiResponseRepository;
     }
 
     @Override
@@ -49,10 +57,45 @@ public class JobMatchServiceImpl implements JobMatchService {
             String resumeText = resume.getExtractedText().toLowerCase();
             int matchedSkills = 0;
 
+            // Attempt to load AI Extracted Skills
+            Set<String> aiExtractedSkills = new HashSet<>();
+            Optional<AIResponseModel> aiOpt = aiResponseRepository.findByUploadedText_Id(resume.getId());
+            
+            if (aiOpt.isPresent() && aiOpt.get().getAiJson() != null) {
+                try {
+                    JsonNode root = objectMapper.readTree(aiOpt.get().getAiJson());
+                    JsonNode skillsNode = root.path("skills");
+                    if (!skillsNode.isMissingNode()) {
+                        skillsNode.elements().forEachRemaining(category -> {
+                            if (category.isArray()) {
+                                category.forEach(item -> aiExtractedSkills.add(item.asText().toLowerCase().trim()));
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to parse AI JSON for resume ID: " + resume.getId());
+                }
+            }
+
             for (String skill : jobSkills) {
-                String pattern = "\\b" + Pattern.quote(skill) + "\\b";
-                if (Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(resumeText).find()) {
-                    matchedSkills++;
+                // If AI extracted skills exist, do exact/contains match on the cleaned AI extracted array
+                if (!aiExtractedSkills.isEmpty()) {
+                    // Match if any AI skill is equal to or contains the job skill (e.g., ai extracts "C++ Programming", job skill is "C++")
+                    boolean match = aiExtractedSkills.stream().anyMatch(s -> s.equals(skill) || s.contains(skill));
+                    if (match) {
+                        matchedSkills++;
+                    }
+                } else {
+                    // Fallback to strict regex matching on raw text if AI hasn't analyzed it yet
+                    String pattern = "\\b" + Pattern.quote(skill) + "\\b";
+                    if (Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(resumeText).find()) {
+                        matchedSkills++;
+                    } else if (!skill.matches(".*[a-zA-Z].*") || skill.contains("+") || skill.contains("#") || skill.contains(".")) {
+                        // Fallback for symbols like C++, C#, .NET
+                        if (resumeText.contains(skill)) {
+                            matchedSkills++;
+                        }
+                    }
                 }
             }
 

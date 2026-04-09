@@ -9,6 +9,7 @@ import com.resumeAnlayazer.backend.repository.AIResponseRepository;
 import com.resumeAnlayazer.backend.repository.UploadedTextRepository;
 import com.resumeAnlayazer.backend.service.AIService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -33,10 +34,17 @@ public class AIServiceImpl implements AIService {
         String prompt = """
                 You are a Resume Analyzer AI.
                 Analyze the given resume text and return a **strictly valid JSON object** (no markdown, no explanations).
-                The JSON must follow this structure:
+                The JSON must follow this structure exactly:
                 {
                   "personalDetails": {},
-                  "education": [],
+                  "education": [
+                    {
+                      "degree": "string (e.g., BSc Computer Science)",
+                      "institution": "string (e.g., MIT)",
+                      "year": "string (e.g., 2020-2024)",
+                      "score": "string (e.g., 3.8 GPA)"
+                    }
+                  ],
                   "skills": {
                     "languages": [],
                     "frameworksLibraries": [],
@@ -93,6 +101,16 @@ public class AIServiceImpl implements AIService {
             System.err.println(" AI analysis failed for uploadedTextId=" + uploadedTextId +
                     ": " + e.getMessage());
             throw new RuntimeException("Error while generating AI response: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Async
+    public void analyzeResumeAsync(Long uploadedTextId) {
+        try {
+            analyzeResume(uploadedTextId);
+        } catch (Exception e) {
+            System.err.println("Async AI analysis failed: " + e.getMessage());
         }
     }
 

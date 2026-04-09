@@ -34,6 +34,7 @@ public class UploadedTextServiceImpl implements UploadedTextService {
     private final HRUserRepository hrUserRepository;
     private final AIService aiService;
     private final AIResponseRepository aiResponseRepository;
+    private final com.resumeAnlayazer.backend.repository.FeedbackRepository feedbackRepository;
 
     // Step 1: Upload and Extract PDF
     @Override
@@ -67,25 +68,16 @@ public class UploadedTextServiceImpl implements UploadedTextService {
 
         UploadedTextModel saved = uploadedTextRepository.save(upload);
 
-        // Trigger AI Analysis immediately
-        AIResponseModel aiResponse = null;
-        try {
-            aiResponse = aiService.analyzeResume(saved.getId());
-            saved.setStatus("ANALYZED");
-        } catch (Exception e) {
-            saved.setStatus("FAILED");
-            log.error(" AI analysis failed for uploadedTextId={} : {}", saved.getId(), e.getMessage());
-        }
-
-        uploadedTextRepository.save(saved);
+        // Trigger AI Analysis asynchronously
+        aiService.analyzeResumeAsync(saved.getId());
 
         return UploadedTextResponseDto.builder()
                 .id(saved.getId())
                 .hrUserId(hrUser.getId())
                 .fileName(saved.getFileName())
-                .status(saved.getStatus())
+                .status("ANALYZING")
                 .createdAt(saved.getCreatedAt())
-                .aiJson(aiResponse != null ? aiResponse.getAiJson() : null)
+                .aiJson(null)
                 .build();
     }
 
@@ -150,6 +142,9 @@ public class UploadedTextServiceImpl implements UploadedTextService {
     public void deleteUploadedText(Long id) {
         UploadedTextModel upload = uploadedTextRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("UploadedText not found with id: " + id));
+
+        // Delete associated feedback if exists to prevent FK violation
+        feedbackRepository.deleteByResumeId(id);
 
         // Delete associated AI response if exists to prevent FK violation
         aiResponseRepository.findByUploadedText_Id(id).ifPresent(aiResponseRepository::delete);

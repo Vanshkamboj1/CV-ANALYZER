@@ -9,6 +9,7 @@ import com.resumeAnlayazer.backend.repository.JobPostingRepository;
 import com.resumeAnlayazer.backend.service.JobPostingService;
 import com.resumeAnlayazer.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,11 +19,14 @@ public class JobPostingServiceImpl implements JobPostingService {
 
     private final JobPostingRepository jobPostingRepository;
     private final HRUserRepository hrUserRepository;
+    private final com.resumeAnlayazer.backend.repository.FeedbackRepository feedbackRepository;
 
     public JobPostingServiceImpl(JobPostingRepository jobPostingRepository,
-                                 HRUserRepository hrUserRepository) {
+                                 HRUserRepository hrUserRepository,
+                                 com.resumeAnlayazer.backend.repository.FeedbackRepository feedbackRepository) {
         this.jobPostingRepository = jobPostingRepository;
         this.hrUserRepository = hrUserRepository;
+        this.feedbackRepository = feedbackRepository;
     }
 
 
@@ -59,10 +63,12 @@ public class JobPostingServiceImpl implements JobPostingService {
     }
 
     @Override
+    @Transactional
     public void deleteJobPosting(Long id) {
         if (!jobPostingRepository.existsById(id)) {
             throw new ResourceNotFoundException("Job posting not found");
         }
+        feedbackRepository.deleteByJobId(id);
         jobPostingRepository.deleteById(id);
     }
 

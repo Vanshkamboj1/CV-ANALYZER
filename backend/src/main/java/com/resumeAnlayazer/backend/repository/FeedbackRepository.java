@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface FeedbackRepository extends JpaRepository<FeedbackModel, Long> {
     Optional<FeedbackModel> findByJobIdAndResumeId(Long jobId, Long resumeId);
+    void deleteByJobId(Long jobId);
+    void deleteByResumeId(Long resumeId);
 }
