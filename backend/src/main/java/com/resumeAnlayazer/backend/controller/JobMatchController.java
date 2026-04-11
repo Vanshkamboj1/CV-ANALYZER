@@ -30,4 +30,13 @@ public class JobMatchController {
         List<MatchScoreDTO> matches = jobMatchService.getMatchesForJob(jobId);
         return ResponseEntity.ok(matches);
     }
+
+    /**
+     * API: Manually trigger a retry for the AI evaluation
+     */
+    @PutMapping("/{jobId}/matches/resume/{resumeId}/retry")
+    public ResponseEntity<Void> retryAIAssessment(@PathVariable Long jobId, @PathVariable Long resumeId) {
+        jobMatchService.retryAIAssessment(jobId, resumeId);
+        return ResponseEntity.ok().build();
+    }
 }

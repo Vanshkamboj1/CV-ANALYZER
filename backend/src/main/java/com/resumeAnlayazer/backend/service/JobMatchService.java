@@ -5,4 +5,5 @@ import java.util.List;
 
 public interface JobMatchService {
     List<MatchScoreDTO> getMatchesForJob(Long jobId);
+    void retryAIAssessment(Long jobId, Long resumeId);
 }

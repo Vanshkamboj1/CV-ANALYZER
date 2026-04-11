@@ -9,6 +9,8 @@ export interface MatchScore {
   totalJobSkills: number;
   feedbackText?: string;
   feedbackStatus?: string;
+  aiScore?: number | null;
+  aiReasoning?: string | null;
 }
 
 export async function saveFeedback(jobId: number, resumeId: number, text: string, status: string) {
@@ -17,6 +19,10 @@ export async function saveFeedback(jobId: number, resumeId: number, text: string
     status
   });
   return data;
+}
+
+export async function retryAIEvaluation(jobId: number, resumeId: number): Promise<void> {
+  await client.put(`/jobs/${jobId}/matches/resume/${resumeId}/retry`);
 }
 
 /**

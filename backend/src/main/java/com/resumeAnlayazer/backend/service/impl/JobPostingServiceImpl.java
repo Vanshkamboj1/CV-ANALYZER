@@ -20,13 +20,16 @@ public class JobPostingServiceImpl implements JobPostingService {
     private final JobPostingRepository jobPostingRepository;
     private final HRUserRepository hrUserRepository;
     private final com.resumeAnlayazer.backend.repository.FeedbackRepository feedbackRepository;
+    private final com.resumeAnlayazer.backend.repository.JobMatchScoreRepository jobMatchScoreRepository;
 
     public JobPostingServiceImpl(JobPostingRepository jobPostingRepository,
                                  HRUserRepository hrUserRepository,
-                                 com.resumeAnlayazer.backend.repository.FeedbackRepository feedbackRepository) {
+                                 com.resumeAnlayazer.backend.repository.FeedbackRepository feedbackRepository,
+                                 com.resumeAnlayazer.backend.repository.JobMatchScoreRepository jobMatchScoreRepository) {
         this.jobPostingRepository = jobPostingRepository;
         this.hrUserRepository = hrUserRepository;
         this.feedbackRepository = feedbackRepository;
+        this.jobMatchScoreRepository = jobMatchScoreRepository;
     }
 
 
@@ -68,6 +71,7 @@ public class JobPostingServiceImpl implements JobPostingService {
         if (!jobPostingRepository.existsById(id)) {
             throw new ResourceNotFoundException("Job posting not found");
         }
+        jobMatchScoreRepository.deleteByJobId(id);
         feedbackRepository.deleteByJobId(id);
         jobPostingRepository.deleteById(id);
     }

@@ -26,7 +26,6 @@ export default function JobRepository() {
       setLoading(true);
       try {
         await fetchJobs(); // load jobs from store action (no args expected)
-        toast.success("Jobs loaded successfully");
       } catch (err: any) {
         console.error("❌ Failed to fetch jobs:", err);
         const message =

@@ -15,4 +15,6 @@ public class MatchScoreDTO {
     private int totalJobSkills;
     private String feedbackText;
     private String feedbackStatus;
+    private Integer aiScore;
+    private String aiReasoning;
 }

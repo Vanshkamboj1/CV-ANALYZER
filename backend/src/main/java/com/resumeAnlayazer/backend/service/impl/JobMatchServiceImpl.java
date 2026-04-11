@@ -18,6 +18,9 @@ import com.resumeAnlayazer.backend.model.AIResponseModel;
 import com.resumeAnlayazer.backend.repository.AIResponseRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.resumeAnlayazer.backend.model.JobMatchScoreModel;
+import com.resumeAnlayazer.backend.repository.JobMatchScoreRepository;
+import com.resumeAnlayazer.backend.service.AIService;
 
 @Service
 public class JobMatchServiceImpl implements JobMatchService {
@@ -26,16 +29,22 @@ public class JobMatchServiceImpl implements JobMatchService {
     private final UploadedTextRepository uploadedTextRepository;
     private final FeedbackRepository feedbackRepository;
     private final AIResponseRepository aiResponseRepository;
+    private final JobMatchScoreRepository jobMatchScoreRepository;
+    private final AIService aiService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JobMatchServiceImpl(JobPostingRepository jobPostingRepository,
                                UploadedTextRepository uploadedTextRepository,
                                FeedbackRepository feedbackRepository,
-                               AIResponseRepository aiResponseRepository) {
+                               AIResponseRepository aiResponseRepository,
+                               JobMatchScoreRepository jobMatchScoreRepository,
+                               AIService aiService) {
         this.jobPostingRepository = jobPostingRepository;
         this.uploadedTextRepository = uploadedTextRepository;
         this.feedbackRepository = feedbackRepository;
         this.aiResponseRepository = aiResponseRepository;
+        this.jobMatchScoreRepository = jobMatchScoreRepository;
+        this.aiService = aiService;
     }
 
     @Override
@@ -115,6 +124,17 @@ public class JobMatchServiceImpl implements JobMatchService {
             String feedbackText = feedbackOpt.map(FeedbackModel::getFeedbackText).orElse(null);
             String feedbackStatus = feedbackOpt.map(FeedbackModel::getStatus).orElse("PENDING");
 
+            Integer aiScore = null;
+            String aiReasoning = null;
+            
+            Optional<JobMatchScoreModel> aiScoreOpt = jobMatchScoreRepository.findFirstByJobIdAndResumeId(jobId, resume.getId());
+            if (aiScoreOpt.isPresent()) {
+                aiScore = aiScoreOpt.get().getAiScore();
+                aiReasoning = aiScoreOpt.get().getAiReasoning();
+            } else {
+                aiService.calculateAIScoreForJobAsync(jobId, resume.getId());
+            }
+
             matches.add(new MatchScoreDTO(
                     resume.getId(),
                     resume.getFileName(),
@@ -122,13 +142,26 @@ public class JobMatchServiceImpl implements JobMatchService {
                     matchedSkills,
                     jobSkills.size(),
                     feedbackText,
-                    feedbackStatus
+                    feedbackStatus,
+                    aiScore,
+                    aiReasoning
             ));
         }
 
         return matches.stream()
                 .sorted(Comparator.comparingInt(MatchScoreDTO::getMatchScore).reversed())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void retryAIAssessment(Long jobId, Long resumeId) {
+        // Clear the failed or stuck AI score
+        jobMatchScoreRepository.findFirstByJobIdAndResumeId(jobId, resumeId).ifPresent(score -> {
+            jobMatchScoreRepository.delete(score);
+        });
+
+        // Trigger async calculation
+        aiService.calculateAIScoreForJobAsync(jobId, resumeId);
     }
 
     private List<String> parseSkills(String skillsCsv) {

@@ -6,4 +6,5 @@ public interface AIService {
     AIResponseModel analyzeResume(Long uploadedTextId);
     void analyzeResumeAsync(Long uploadedTextId);
     AIResponseModel getAnalysis(Long uploadedTextId);
+    void calculateAIScoreForJobAsync(Long jobId, Long resumeId);
 }

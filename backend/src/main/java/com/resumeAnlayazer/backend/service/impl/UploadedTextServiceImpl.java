@@ -35,6 +35,7 @@ public class UploadedTextServiceImpl implements UploadedTextService {
     private final AIService aiService;
     private final AIResponseRepository aiResponseRepository;
     private final com.resumeAnlayazer.backend.repository.FeedbackRepository feedbackRepository;
+    private final com.resumeAnlayazer.backend.repository.JobMatchScoreRepository jobMatchScoreRepository;
 
     // Step 1: Upload and Extract PDF
     @Override
@@ -142,6 +143,9 @@ public class UploadedTextServiceImpl implements UploadedTextService {
     public void deleteUploadedText(Long id) {
         UploadedTextModel upload = uploadedTextRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("UploadedText not found with id: " + id));
+
+        // Delete associated match scores to prevent FK violation
+        jobMatchScoreRepository.deleteByResumeId(id);
 
         // Delete associated feedback if exists to prevent FK violation
         feedbackRepository.deleteByResumeId(id);
